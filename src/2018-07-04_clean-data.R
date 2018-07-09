@@ -8,6 +8,7 @@ library("tidyverse")
 library("here") 
 library("magrittr")
 library("broom")
+library("ggpubr")
 
 # rm(list = ls())
 
@@ -15,7 +16,7 @@ library("broom")
 # > Change filename
 # > refit model without outliers 
 # > Negative Binomial regression instead of Poisson (account for increasing variance as fitted values increase)
-# > examine quadratic effect of age? 
+# > use zero-truncated Poisson regression?: https://stats.idre.ucla.edu/r/dae/zero-truncated-poisson/ 
 #****************
 
 # 0) read, prep data: ------------------
@@ -231,7 +232,7 @@ m2.coeffs %>% select(term, estimate.back.transformed)
 
 # coeff of Thu is highest, 1.05 times Monday 
 # coeff of Sat is lowest, 0.87 times Monday 
-
+# coeff of Fri not signif diff from Monday 
 
 # > age coefficient: -----------
 # coeff of age = 1.013
@@ -241,23 +242,60 @@ m2.coeffs %>% select(term, estimate.back.transformed)
 
 # note: adding quadratic effect of age does not significantly improve the model (small decrease in deviance, AIC)
 
+# > unit coefficients: --------
+# coeff of 3E = 0.77 (back-transformed)
+# this says that LOS of 3E is 0.77 that of 2E (adjusting for age and dow) 
+
+# coeff of 4E, 4W, 5E, 6W, 7E, 7W, ICU, NCU, OR and SCO are between 1 and 3 times 2E
+
+# coeff of MIU and Carlile are very high: 3.5 and 6.4 times 2E
 
 
 
-# actuals vs predicted values: ------
-# todo: is this a useful plot?? 
-p7.full.model <- 
+
+
+# > actuals vs predicted values: ------
+p7.fitted.vs.dow <- 
     augment(m2.pois) %>% 
-    select(losdays, .fitted) %>% 
-    ggplot(aes(x=.fitted, 
-               y=losdays)) + 
-    geom_point() + 
-    geom_smooth() + 
-    theme_classic(base_size = 16); p7.full.model  
-    # scale_y_log10()
+    select(losdays, 
+           .fitted, 
+           dow) %>% 
+    ggplot(aes(x=dow, 
+               y=.fitted)) +
+    geom_boxplot() + 
+    stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) + 
+    scale_y_continuous(limits = c(0,5)) + 
+    theme_classic(base_size = 16); p7.fitted.vs.dow  
+
+# this is actually same as p5
+p8.actualLOS.vs.dow <- 
+    augment(m2.pois) %>% 
+    select(losdays, 
+           .fitted, 
+           dow) %>% 
+    ggplot(aes(x=dow, 
+               y=losdays)) +
+    geom_boxplot() + 
+    stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) + 
+    coord_cartesian(ylim = c(0, 5)) + 
+    theme_classic(base_size = 16); p8.actualLOS.vs.dow  
 
 
+# note: comparing p7 and p8 we can see that our model is not 
+# accounting for the fact that there are no LOSDays of 0 in the observed data. 
+# todo: we should be using zero-truncated Poisson regression: https://stats.idre.ucla.edu/r/dae/zero-truncated-poisson/ 
+
+ggarrange(p7.fitted.vs.dow, 
+          p8.actualLOS.vs.dow, 
+          ncol = 2)
 
 
+# NOTE; null model represented by p5.los.by.day (and p8) shows that 
+# using simple average for each DOW is a poor model: the average
+# is outside the IQR range for every day except Saturday. 
 
+# in contrast, model m2 produces fitted values that are almost always 
+# within the IQR of actual LOS data. It is better to use model m2 to 
+# predict average LOS by DOW than to just use the raw average in hte data 
 
+# todo: to improve the model, avoid producing fitted values below 1. 
