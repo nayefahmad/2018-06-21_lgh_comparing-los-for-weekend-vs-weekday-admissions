@@ -13,13 +13,12 @@ library("broom")
 
 # TODO: ---------
 # > Change filename
-# > forward stepwise buildup of model  
+# > refit model without outliers 
+# > Negative Binomial regression instead of Poisson (account for increasing variance as fitted values increase)
+# > examine quadratic effect of age? 
 #****************
 
-
-
-
-
+# 0) read, prep data: ------------------
 df1.raw.data <- read_csv(here("results", 
                               "output from src", 
                               "2018-06-21_lgh_comparing-los-for-weekend-vs-weekday-admissions.csv"), 
@@ -113,25 +112,27 @@ p6.los.by.day.by.unit <-
 
 
 
-# regression of losdays: ----------------------
+# 2) regression of losdays: ----------------------
 # since data is count data (counting days starting at 0), we use Poisson regression
 
+# > 1st model: los vs dow ---------
+m1.pois <- glm(losdays ~ dow,
+               family = poisson(link=log), 
+               data=df1.raw.data)
+
+summary(m1.pois)
+
+# create table to comare models: 
+model.comparison <- 
+    glance(m1.pois) %>% 
+    as.data.frame() %>% 
+    mutate(model = "los ~ dow") %>% 
+    select(model, everything())
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-# regression los vs day of week, age, unit: 
+# > 2nd model: los vs day of week, age, unit: -----------
 m2.pois <-  glm(losdays ~ dow + age + unit.code,
                        family = poisson(link=log), 
                        data=df1.raw.data)
@@ -153,13 +154,53 @@ m2.coeffs
 augment(m2.pois) 
 glance(m2.pois)
 
+# compare m1 and m2: --------- 
+model.comparison <- 
+    rbind(model.comparison, 
+      glance(m2.pois) %>% 
+          as.data.frame() %>% 
+          mutate(model = "los ~ dow + age + unit") %>% 
+          select(model, everything()))
+model.comparison
+
+# AIC, BIC, deviance all lower for m2 ==> it's a better model! 
 
 
-# interpreting the model: ---------
 
-# model: log(mu) = exp(X.Beta) ==> mu = exp(X.Beta)
+# m2 diagnostics: -----------
+# reference for poisson regression for patient LOS: 
+# https://bmcmedinformdecismak.biomedcentral.com/articles/10.1186/1472-6947-14-26 
+
+par(mfrow = c(2,2))
+plot(m2.pois)
+par(mfrow = c(1,1))
+
+# plot 1: loess line stays near 0 across the range of predicted values, so that's good 
+# note that at low predicted values, residuals have a lower bound because actual LOS is never below 0. 
+
+# todo: however, we expect no "fanning out" of resids ==> we're not accounting for all the variance! Maybe use a Negative Binomial regression instead of Poisson? 
+# https://support.minitab.com/en-us/minitab/18/help-and-how-to/modeling-statistics/regression/how-to/fit-poisson-model/interpret-the-results/all-statistics-and-graphs/residual-plots/ 
+
+# plot 2: inverted S-shape looks okay for Poisson resids? (see reference above)
+# plot 3: looks ok?? (see reference above)
+# plot 4: most points within bounds, that's good
+
+resid(m2.pois) %>% hist  # looks like it could be a Poisson dist, so that's good 
+
+# Pearson resids: supposed to be normal?: https://stats.stackexchange.com/questions/99052/residuals-in-poisson-regression 
+plot(resid(m2.pois, "pearson") ~ predict(m2.pois))
+
+
+# general: points 4024, 3499, 643 and 4495 might be outliers; todo: refit model without outliers 
+
+
+
+
+# 3) interpreting the full model: ---------
+
+# model: log(mu) = X_matrix.Beta ==> mu = exp(X.Beta)
 # therefore, each coefficient shows the multiplicative increase in mu 
-# by a factor of exp(coefficient). 
+# by a factor of exp(coefficient) ==> 1 unit increase in X causes multiplicative increase in response by exp(beta) 
 
 # intercept: mean los for Mondays for unit = 2E 
 
@@ -171,12 +212,49 @@ df1.raw.data %>%
            dow == "Monday") %>% 
     select(losdays) %>% 
     summarize(mean.los = mean(losdays, na.rm = TRUE))
-# 2.5 days 
+# 2.5 days  # todo: why doesn't this match with exp(1.0461...)? 
+
+
+# look at the coefficients again: 
+# reference: https://stats.stackexchange.com/questions/120030/interpretation-of-betas-when-there-are-multiple-categorical-variables 
+m2.coeffs %>% select(term, estimate.back.transformed)
+
+# reference group: unit=2E, dow=Monday
+
+
+# > dow coefficients: ----------
+# coeff of Mon (reference): 1.00
+
+# coeff of Tue (backtransformed): 0.9060766
+# this says that LOS of Tue is 0.91 of that of Monday on avg
+# (after adjusting effect of age and unit)
+
+# coeff of Thu is highest, 1.05 times Monday 
+# coeff of Sat is lowest, 0.87 times Monday 
+
+
+# > age coefficient: -----------
+# coeff of age = 1.013
+# this says every increase in age by 1 year increases LOS 
+# by factor of 1.013 days (adj for dow and unit) compared to reference LOS of 2.8 days 
+# increase age by 10 yrs ==> los increases by factor of 10.13?
+
+# note: adding quadratic effect of age does not significantly improve the model (small decrease in deviance, AIC)
 
 
 
 
-
+# actuals vs predicted values: ------
+# todo: is this a useful plot?? 
+p7.full.model <- 
+    augment(m2.pois) %>% 
+    select(losdays, .fitted) %>% 
+    ggplot(aes(x=.fitted, 
+               y=losdays)) + 
+    geom_point() + 
+    geom_smooth() + 
+    theme_classic(base_size = 16); p7.full.model  
+    # scale_y_log10()
 
 
 
