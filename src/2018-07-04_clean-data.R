@@ -11,6 +11,15 @@ library("broom")
 
 # rm(list = ls())
 
+# TODO: ---------
+# > Change filename
+# > forward stepwise buildup of model  
+#****************
+
+
+
+
+
 df1.raw.data <- read_csv(here("results", 
                               "output from src", 
                               "2018-06-21_lgh_comparing-los-for-weekend-vs-weekday-admissions.csv"), 
@@ -107,41 +116,70 @@ p6.los.by.day.by.unit <-
 # regression of losdays: ----------------------
 # since data is count data (counting days starting at 0), we use Poisson regression
 
-m1.pois.linear <-  glm(losdays ~ dow + age,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# regression los vs day of week, age, unit: 
+m2.pois <-  glm(losdays ~ dow + age + unit.code,
                        family = poisson(link=log), 
                        data=df1.raw.data)
 
-summary(m1.pois.linear)
-predict(m1.pois.linear) %>% as.vector %>% summary
+summary(m2.pois)
+predict(m2.pois) %>% as.vector %>% summary
+
+# examine significant coeffs: 
+m2.coeffs <- tidy(m2.pois) %>% 
+    mutate(estimate.back.transformed = exp(estimate), 
+           sig = ifelse(p.value < .05, TRUE, FALSE)) %>% 
+    select(term, estimate, estimate.back.transformed, everything()) %>% 
+    filter(sig == TRUE)
+
+m2.coeffs
+
+
+# other model summaries: 
+augment(m2.pois) 
+glance(m2.pois)
+
+
+
+# interpreting the model: ---------
 
 # model: log(mu) = exp(X.Beta) ==> mu = exp(X.Beta)
 # therefore, each coefficient shows the multiplicative increase in mu 
 # by a factor of exp(coefficient). 
 
+# intercept: mean los for Mondays for unit = 2E 
+
 # check: 
-# exp(1.536703)  # 4.649236. this is coeff of the intercept
-# mean(df1.raw.data$losdays, na.rm = T)  # 4.709783
-
-m1.coeffs <- tidy(m1.pois.linear) %>% 
-    mutate(estimate.back.transformed = exp(estimate), 
-           sig = ifelse(p.value < .05, TRUE, FALSE)) %>% 
-    select(term, estimate, estimate.back.transformed, everything())
-
-m1.coeffs
-
-augment(m1.pois.linear) 
-glance(m1.pois.linear)
-
-# after adjusting for age, los of patients admitted on Sundays are 
-# significantly higher than Mondays by 1.518 days on average 
-
-# holding dow equal, each year of age increases LOS by 1.06 days on average! 
-# This is a huge effect. 
+# exp(1.0461063)  # 2.846546 days; this is coeff of the intercept
+# check: 
+df1.raw.data %>% 
+    filter(unit.code == "2E", 
+           dow == "Monday") %>% 
+    select(losdays) %>% 
+    summarize(mean.los = mean(losdays, na.rm = TRUE))
+# 2.5 days 
 
 
 
-m2.unit <- glm(losdays ~ unit.code + age, 
-               family = poisson(),  # todo: should we include link = identity? 
-               data=df1.raw.data)
 
-summary(m2.unit)
+
+
+
+
+
+
+
