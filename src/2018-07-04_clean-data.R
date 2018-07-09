@@ -1,7 +1,7 @@
 
 
 #**************************************************
-# IMPORT, CLEAN DATA 
+# POISSON REGRESSION FOR LOS on DAY OF WEEK, AGE, ETC.  
 #**************************************************
 
 library("tidyverse")
@@ -43,6 +43,7 @@ summary(df1.raw.data$unit.code)
 
 
 # 1) basic analysis: --------------------------------------------
+# admissions by dow: 
 p1.dow <- 
     df1.raw.data %>% 
     ggplot(aes(x = dow)) +
@@ -55,13 +56,14 @@ p2.dow.by.unit <-
                   limits = c(1, 2000)) +
     theme(axis.text.x = element_text(angle = 90, vjust = -.05)); p2.dow.by.unit
 
+# hist of LOS (log x axis)
 p3.hist <- 
     df1.raw.data %>%
     ggplot(aes(x=losdays)) +
     geom_histogram(binwidth = 5) + 
-    scale_x_continuous(breaks = seq(0,150, 10)) + 
-    scale_y_log10(breaks = c(1, 5, 10, 50, 100, 500, 1000)); p3.hist
-# todo: some values being dropped?? max losdays should be 130
+    scale_x_continuous(breaks = seq(0,150, 10)) +   
+    scale_y_log10(breaks = c(0, 1, 5, 10, 50, 100, 500, 1000)); p3.hist
+# todo: some values being dropped?? max losdays should be 130; remove log y-axis and set binwidth to 1 
 # prob because scale of y starts at 1 
 
 p4.hist.by.unit <- 
@@ -76,15 +78,29 @@ p5.los.by.day <-
                y = losdays)) + 
     geom_boxplot() + 
     stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) + 
-    scale_y_log10(breaks = c(1, 2, 3, 4, 5, 10, 50, 100)); p5.los.by.day
+    scale_y_continuous(breaks = seq(0, 20, 1)) + 
+    coord_cartesian(ylim = c(0, 15)); p5.los.by.day
+
 # Median LOS is 2 days regardless of day of admission 
+# Thursday, Friday have highest mean LOS; todo: is this significant?? 
+
+# exact values of means: 
+# df1.raw.data %>% group_by(dow) %>% summarise(mean.los = mean(losdays, na.rm = TRUE))
+# 90th percentile: 
+# df1.raw.data %>% group_by(dow) %>% summarise(perc.90.los = quantile(losdays, probs = 0.90, na.rm = TRUE))
 
 p6.los.by.day.by.unit <- 
-    p5.los.by.day + 
+    df1.raw.data %>% 
+    ggplot(aes(x = dow, 
+               y = losdays)) + 
+    geom_boxplot() + 
+    stat_summary(fun.y = mean, geom="point",colour="darkred", size=3) + 
+    scale_y_continuous(breaks = seq(0, 50, 5)) +
+    coord_cartesian(ylim = c(0,50)) + 
     facet_wrap(~unit.code) + 
     theme(axis.text.x = element_text(angle = 90, vjust = -.05)); p6.los.by.day.by.unit
 # hypothesis that LOS greater if weekend admission seems to hold for 4E, 2E, 5E 
-# maybe not for other units 
+# maybe not for other units??
 
 
 
@@ -92,10 +108,11 @@ p6.los.by.day.by.unit <-
 # since data is count data (counting days starting at 0), we use Poisson regression
 
 m1.pois.linear <-  glm(losdays ~ dow + age,
-                       family = poisson(link=identity), 
+                       family = poisson(link=log), 
                        data=df1.raw.data)
 
 summary(m1.pois.linear)
+predict(m1.pois.linear) %>% as.vector %>% summary
 
 # model: log(mu) = exp(X.Beta) ==> mu = exp(X.Beta)
 # therefore, each coefficient shows the multiplicative increase in mu 
@@ -111,6 +128,9 @@ m1.coeffs <- tidy(m1.pois.linear) %>%
     select(term, estimate, estimate.back.transformed, everything())
 
 m1.coeffs
+
+augment(m1.pois.linear) 
+glance(m1.pois.linear)
 
 # after adjusting for age, los of patients admitted on Sundays are 
 # significantly higher than Mondays by 1.518 days on average 
