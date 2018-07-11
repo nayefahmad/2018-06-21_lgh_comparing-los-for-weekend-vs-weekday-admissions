@@ -95,13 +95,25 @@ p6.los.by.day.by.unit <-
 # 2) regression of losdays: ----------------------
 # since data is count data (counting days starting at 0), we use Poisson regression
 
-# 0th model: for comparison, fit a OLS regression: 
-m0.ols <- lm(losdays ~ dow, 
+# > 0th model: for comparison, fit a OLS regression: ---------
+m0.ols.dow <- lm(losdays ~ dow, 
              data = df1.raw.data)
 
 par(mfrow = c(2,2))
-plot(m0.ols)
+plot(m0.ols.dow)
 par(mfrow = c(1,1))
+
+# second null model: 
+m0.ols.unit <- lm(losdays ~ unit.code, 
+                  data = df1.raw.data)
+par(mfrow = c(2,2))
+plot(m0.ols.unit)
+par(mfrow = c(1,1))
+
+
+
+
+
 
 # > 1st model: los vs dow ---------
 m1.pois <- glm(losdays ~ dow,
@@ -289,3 +301,16 @@ ggarrange(p7.fitted.vs.dow,
 
 
 
+
+
+# write outputs: -------------
+saveRDS(m0.ols.dow, 
+        here("results", 
+             "output from src", 
+             "m0.ols.dow.Rds"))
+
+
+saveRDS(m0.ols.unit, 
+        here("results", 
+             "output from src", 
+             "m0.ols.unit.Rds"))
