@@ -31,10 +31,46 @@ df4.testing.with.predicted <-
            m3.pred = exp(predict(m3.los.vs.dow, 
                                  newdata = df2.test.data)), 
            m4.pred = exp(predict(m4.los.vs.dow.age.unit, 
-                                 newdata = df2.test.data)))
+                                 newdata = df2.test.data)), 
+           
+           m0.err.sq = (losdays - m0.pred)^2, 
+           m3.err.sq = (losdays - m3.pred)^2, 
+           m4.err.sq = (losdays - m4.pred)^2)
+
+summary(df4.testing.with.predicted)
+
+# Find RMSE: ---------------- 
+(m0.rmse <- sqrt(mean(df4.testing.with.predicted$m0.err.sq)))  # 8.720378
+(m3.rmse <- sqrt(mean(df4.testing.with.predicted$m3.err.sq)))  # 8.72092
+(m4.rmse <- sqrt(mean(df4.testing.with.predicted$m4.err.sq)))  # 7.547195
 
 
-# plot results: 
+# RMSE for shorter/longer stays: -------
+m0.rmse.filtered <- df4.testing.with.predicted %>% 
+    filter(losdays <= quantile(df4.testing.with.predicted$losdays, .75), 
+           losdays >= quantile(df4.testing.with.predicted$losdays, 0)) %>%
+    select(m0.err.sq) %>% 
+    unlist() %>% 
+    as.vector() %>% 
+    mean(., na.rm = TRUE) %>% 
+    sqrt()
+
+m4.rmse.filtered <- df4.testing.with.predicted %>% 
+    filter(losdays <= quantile(df4.testing.with.predicted$losdays, .75), 
+           losdays >= quantile(df4.testing.with.predicted$losdays, 0)) %>%
+    select(m4.err.sq) %>% 
+    unlist() %>% 
+    as.vector() %>% 
+    mean(., na.rm = TRUE) %>% 
+    sqrt()
+
+m0.rmse.filtered; m4.rmse.filtered
+(m4.rmse.filtered - m0.rmse.filtered)/m0.rmse.filtered  # 15% reduction in RMSE
+
+
+
+
+# plot results: --------------
 p15.test.data.actual.vs.pred.m4 <- 
     df4.testing.with.predicted %>% 
     ggplot(aes(x = m4.pred, 
@@ -44,7 +80,7 @@ p15.test.data.actual.vs.pred.m4 <-
                shape = 1, 
                colour = "blue") +
     scale_y_continuous(breaks = seq(0,120, by = 10)) + 
-    coord_cartesian(ylim = c(0,40)) + 
+    coord_cartesian(ylim = c(0,30)) + 
     stat_smooth(method = "loess") + 
     
     labs(title = "Predicting LOS at Lions Gate Hospital (test data from Jan to Feb 2018)",
@@ -83,3 +119,9 @@ ggsave(here("results",
             "output from src", 
             "2018-07-10_lgh_test-data-los-predictions-from-null-model-OLS-with-only-DOW.pdf"), 
        p16.test.data.actual.vs.pred.m0)
+
+
+
+# calculate RMSE: 
+
+
