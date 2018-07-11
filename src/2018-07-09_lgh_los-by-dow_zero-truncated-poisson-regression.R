@@ -203,40 +203,33 @@ p12.add.quantiles <-
 
 # the spread stays pretty much the same across the fitted values, so that's good 
 
-# > model interpretation: ------
-# Since resids look ok, we can proceed to interpret the model 
-summary(m4.los.vs.dow.age.unit)
+# > model comparison : ------
+# Since resids look ok, we can proceed to interpret & compare the models 
+summary(m4.los.vs.dow.age.unit)  # Log-likelihood: -15035.2 on 4859 degrees of freedom
+logLik(m4.los.vs.dow.age.unit)
 
-# Estimate Std. Error z value Pr(>|z|)    
-#     (Intercept)                         0.9529996  0.0840731  11.335  < 2e-16 ***
-#     dowTuesday                         -0.1137544  0.0258102  -4.407 1.05e-05 ***
-#     dowWednesday                       -0.0895939  0.0251287  -3.565 0.000363 ***
-#     dowThursday                         0.0528716  0.0244277   2.164 0.030433 *  
-#     dowFriday                          -0.0067072  0.0249092  -0.269 0.787726    
-#     dowSaturday                        -0.1633314  0.0394573  -4.139 3.48e-05 ***
-#     dowSunday                          -0.0390195  0.0366033  -1.066 0.286419    
-#     age                                 0.0146439  0.0005564  26.319  < 2e-16 ***
-#     unit.code3E                        -0.3103045  0.0937379  -3.310 0.000932 ***
-#     unit.code3W                        -0.5797255  0.1525287  -3.801 0.000144 ***
-#     unit.code4E                         0.5389040  0.0851936   6.326 2.52e-10 ***
-#     unit.code4W                         0.5932134  0.0753543   7.872 3.48e-15 ***
-#     unit.code5E                         1.0774854  0.0739714  14.566  < 2e-16 ***
-#     unit.code6E                        -0.0885913  0.0837451  -1.058 0.290115    
-#     unit.code6W                         0.2151108  0.0807048   2.665 0.007690 ** 
-#     unit.code7E                         1.0570433  0.0790719  13.368  < 2e-16 ***
-#     unit.code7W                         0.1737497  0.0800304   2.171 0.029928 *  
-#     unit.codeCarlile Youth CD Ctr - IP  1.9345319  0.0828873  23.339  < 2e-16 ***
-#     unit.codeECC                       -0.4484701  0.5269421  -0.851 0.394725    
-#     unit.codeICU                        0.5465786  0.0795467   6.871 6.37e-12 ***
-#     unit.codeIPS                       -0.8882020  0.0730262 -12.163  < 2e-16 ***
-#     unit.codeLD                        -0.6631873  0.0773502  -8.574  < 2e-16 ***
-#     unit.codeMIU                        1.2766939  0.0764755  16.694  < 2e-16 ***
-#     unit.codeNCU                        0.7252013  0.0936617   7.743 9.73e-15 ***
-#     unit.codeOR                         0.4392114  0.1613633   2.722 0.006491 ** 
-#     unit.codePAR                       -0.8473448  0.0850810  -9.959  < 2e-16 ***
-#     unit.codeSCO                        0.8203850  0.1185220   6.922 4.46e-12 ***
+summary(m3.los.vs.dow)  # Log-likelihood: -24361.36 on 4879 degrees of freedom
+logLik(m3.los.vs.dow)
+
+
+# model with lowest deviance is best. deviance = -2*logLike
+# use lrtest to find whether difference in deviance is significant (diff in deviance has chi-sq. dist)
+# reference: https://stats.stackexchange.com/questions/237702/comparing-models-using-the-deviance-and-log-likelihood-ratio-tests# 
+?lrtest
+lrtest(m3.los.vs.dow, m4.los.vs.dow.age.unit)
+# since the prob that the chi-sq. test stat takes the value that's observed is <0.05, 
+# we conclude that the diff in deviance is significant...?
+
+# examine predictions: note that these are in log units. 
+predict(m4.los.vs.dow.age.unit) %>% head
+predict(m3.los.vs.dow) %>% head
+
 
 
 # > bootstrap CIs for full model: ----------
 # todo: don't know how to do this
+
+
+
+
 
