@@ -225,6 +225,50 @@ predict(m4.los.vs.dow.age.unit) %>% head
 predict(m3.los.vs.dow) %>% head
 
 
+# actual vs predicted values: 
+df3.training.with.predicted <- 
+    df1.raw.data %>% 
+    filter(!is.na(losdays)) %>% 
+    mutate(m3.pred = exp(predict(m3.los.vs.dow)), 
+           m4.pred = exp(predict(m4.los.vs.dow.age.unit)))
+
+
+# model m3: 
+p13.actual.vs.pred.m3 <- 
+    df3.training.with.predicted %>% 
+    ggplot(aes(x = m3.pred, 
+               y = losdays)) +
+    geom_point(aes(x = m3.pred, 
+                   y = losdays), 
+               shape = 1, 
+               colour = "grey30") +
+    stat_smooth(method = "loess"); p13.actual.vs.pred.m3
+
+
+# model m4: 
+p14.actual.vs.pred.m4 <- 
+    df3.training.with.predicted %>% 
+    ggplot(aes(x = m4.pred, 
+               y = losdays)) +
+    geom_point(aes(x = m4.pred, 
+                   y = losdays), 
+               shape = 1, 
+               colour = "blue") +
+    scale_y_continuous(breaks = seq(0,120, by = 10)) + 
+    coord_cartesian(ylim = c(0,40)) + 
+    stat_smooth(method = "loess") + 
+    
+    labs(title = "Modelling LOS at Lions Gate Hospital",
+         subtitle = "Actual LOS vs fitted values using zero-truncated Poisson regression model \nSince loess line passes through origin with slope ~1.0, model is performing well \nModel uses Age, Day of Week and Nursing Unit as predictors") + 
+    
+    theme_classic(base_size = 14); p14.actual.vs.pred.m4
+
+# write output: 
+ggsave(here("results", 
+            "output from src", 
+            "2018-07-10_actual-los-vs-fitted-from-full-model.pdf"))
+# THIS IS GREAT!!! ALMOST A STRAIGHT LINE WITH SLOPE 1.0!!!
+
 
 # > bootstrap CIs for full model: ----------
 # todo: don't know how to do this
