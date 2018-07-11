@@ -151,10 +151,19 @@ params
 
 
 
+#***************************************************************
+# 2) 2nd model: los ~ dow + unit.code --------
+#***************************************************************
+m3.1.los.vs.dow.unit <- vglm(losdays ~ dow + unit.code,
+                             family = pospoisson(), 
+                             data = df1.raw.data)
+
+summary(m3.1.los.vs.dow.unit)
+
 
 
 #***************************************************************
-# 2nd model: los ~ dow + age + unit.code --------
+# 3) 3rd model: los ~ dow + age + unit.code --------
 #***************************************************************
 m4.los.vs.dow.age.unit <- 
     vglm(losdays ~ dow + age + unit.code, 
@@ -203,22 +212,36 @@ p12.add.quantiles <-
 
 # the spread stays pretty much the same across the fitted values, so that's good 
 
-# > model comparison : ------
-# Since resids look ok, we can proceed to interpret & compare the models 
-summary(m4.los.vs.dow.age.unit)  # Log-likelihood: -15035.2 on 4859 degrees of freedom
-logLik(m4.los.vs.dow.age.unit)
+
+#**********************************************************************
+# 4) model comparison : ------
+#**********************************************************************
+# Since resids of m4 look ok, we can proceed to interpret & compare the models 
 
 summary(m3.los.vs.dow)  # Log-likelihood: -24361.36 on 4879 degrees of freedom
 logLik(m3.los.vs.dow)
+
+summary(m3.1.los.vs.dow.unit)  # Log-likelihood: -15399.42 on 4860 degrees of freedom
+logLik(m3.1.los.vs.dow.unit) 
+
+summary(m4.los.vs.dow.age.unit)  # Log-likelihood: -15035.2 on 4859 degrees of freedom
+logLik(m4.los.vs.dow.age.unit)
 
 
 # model with lowest deviance is best. deviance = -2*logLike
 # use lrtest to find whether difference in deviance is significant (diff in deviance has chi-sq. dist)
 # reference: https://stats.stackexchange.com/questions/237702/comparing-models-using-the-deviance-and-log-likelihood-ratio-tests# 
 ?lrtest
-lrtest(m3.los.vs.dow, m4.los.vs.dow.age.unit)
+
+# compare m3 and m3.1
+lrtest(m3.los.vs.dow, m3.1.los.vs.dow.unit)  # significant: adding unit variable works! 
 # since the prob that the chi-sq. test stat takes the value that's observed is <0.05, 
 # we conclude that the diff in deviance is significant...?
+
+# compare m3.1 and m4: 
+lrtest(m3.1.los.vs.dow.unit, m4.los.vs.dow.age.unit)  # significant: adding age variable works!
+
+
 
 # examine predictions: note that these are in log units. 
 predict(m4.los.vs.dow.age.unit) %>% head
@@ -264,9 +287,9 @@ p14.actual.vs.pred.m4 <-
     theme_classic(base_size = 14); p14.actual.vs.pred.m4
 
 # write output: 
-ggsave(here("results", 
-            "output from src", 
-            "2018-07-10_actual-los-vs-fitted-from-full-model.pdf"))
+# ggsave(here("results", 
+#             "output from src", 
+#             "2018-07-10_actual-los-vs-fitted-from-full-model.pdf"))
 # THIS IS GREAT!!! ALMOST A STRAIGHT LINE WITH SLOPE 1.0!!!
 
 
