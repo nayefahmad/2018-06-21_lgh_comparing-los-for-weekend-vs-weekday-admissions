@@ -27,13 +27,13 @@ extract.coeffs.m3_function <-
 
 
 # fn test: ---------------
-set.seed(10)
-bootresults <- 
-    boot(df1.raw.data, 
-         extract.coeffs.m3_function, 
-         R = 100) %>% 
-    tidy() %>% 
-    mutate(param = rep(c("coeff", "stderror"), 7)) %>% 
-    select(param, everything())
-
-bootresults
+# set.seed(10)
+# bootresults <- 
+#     boot(df1.raw.data, 
+#          extract.coeffs.m3_function, 
+#          R = 100) %>% 
+#     tidy() %>% 
+#     mutate(param = rep(c("coeff", "stderror"), 7)) %>% 
+#     select(param, everything())
+# 
+# bootresults
