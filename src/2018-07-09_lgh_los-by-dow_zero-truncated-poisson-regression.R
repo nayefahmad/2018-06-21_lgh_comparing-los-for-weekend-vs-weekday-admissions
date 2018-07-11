@@ -276,4 +276,18 @@ ggsave(here("results",
 
 
 
+# WRITE OUTPUTS: --------------
+saveRDS(m3.los.vs.dow, 
+        here("results", 
+             "output from src", 
+             "m3.los.vs.dow"))
 
+saveRDS(m3.los.vs.dow, 
+        here("results", 
+             "output from src", 
+             "m3.los.vs.dow.Rds"))
+
+saveRDS(m4.los.vs.dow.age.unit, 
+        here("results", 
+             "output from src", 
+             "m4.los.vs.dow.age.unit.Rds"))

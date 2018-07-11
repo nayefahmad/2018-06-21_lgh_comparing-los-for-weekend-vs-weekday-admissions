@@ -34,7 +34,7 @@ bootresults <-
          R = 5) #  %>%
 
 # Error in t.star[r, ] <- res[[r]] : 
-    # number of items to replace is not a multiple of replacement length
+# number of items to replace is not a multiple of replacement length
 
 # apparently some factor levels are dropped in some bootstrap iterations, 
 # sooo... that's a problem
