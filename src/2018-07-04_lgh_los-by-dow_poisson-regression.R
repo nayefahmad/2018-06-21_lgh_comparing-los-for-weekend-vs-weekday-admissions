@@ -95,6 +95,14 @@ p6.los.by.day.by.unit <-
 # 2) regression of losdays: ----------------------
 # since data is count data (counting days starting at 0), we use Poisson regression
 
+# 0th model: for comparison, fit a OLS regression: 
+m0.ols <- lm(losdays ~ dow, 
+             data = df1.raw.data)
+
+par(mfrow = c(2,2))
+plot(m0.ols)
+par(mfrow = c(1,1))
+
 # > 1st model: los vs dow ---------
 m1.pois <- glm(losdays ~ dow,
                family = poisson(link=log), 
