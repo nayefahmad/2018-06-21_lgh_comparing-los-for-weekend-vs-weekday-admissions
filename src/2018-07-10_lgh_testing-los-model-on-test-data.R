@@ -43,10 +43,15 @@ df4.testing.with.predicted <-
            m4.pred = exp(predict(m4.los.vs.dow.age.unit, 
                                  newdata = df2.test.data)), 
            
+           # find squared errors: 
            m0.dow.err.sq = (losdays - m0.dow.pred)^2,
            m0.unit.err.sq = (losdays - m0.unit.pred)^2,
            m3.err.sq = (losdays - m3.pred)^2, 
-           m4.err.sq = (losdays - m4.pred)^2)
+           m4.err.sq = (losdays - m4.pred)^2, 
+           
+           # find absolute errors: 
+           m0.unit.err.abs = abs(losdays - m0.unit.pred), 
+           m4.err.abs = abs(losdays - m4.pred))
 
 summary(df4.testing.with.predicted)
 
@@ -99,6 +104,32 @@ m4.rmse.filtered <- df4.testing.with.predicted %>%
 # compare m4 with m0.unit: 
 # m0.unit.rmse.filtered; m4.rmse.filtered
 (m4.rmse.filtered - m0.unit.rmse.filtered)/m0.unit.rmse.filtered  # 0.5% reduction in RMSE
+
+
+
+# compare MAE of m4 vs m0.unit: --------------
+(m0.unit.mae <- mean(df4.testing.with.predicted$m0.unit.err.abs))  # 3.271747
+(m4.mae <- mean(df4.testing.with.predicted$m4.err.abs))  # 3.1262 
+
+(m4.mae - m0.unit.mae)/m0.unit.mae  # 4.44% reduction in MAE 
+
+
+# comparison table for m4 vs m0.unit: 
+df5.error.comparison <- 
+    data.frame(model = c("los ~ unit (OLS)", 
+                         "los ~ unit + age + dow (0-trunc. Pois)"), 
+               rmse = c(m0.unit.rmse, 
+                        m4.rmse), 
+               mae = c(m0.unit.mae, 
+                       m4.mae))
+
+# so, RMSE or MAE? 
+# ans. It's complicated? https://www.geosci-model-dev-discuss.net/7/C473/2014/gmdd-7-C473-2014-supplement.pdf 
+# This says RMSE more appropriate with normal errors (not the case here)
+
+# https://www.quora.com/How-would-a-model-change-if-we-minimized-absolute-error-instead-of-squared-error-What-about-the-other-way-around 
+# says MAE more robust to outliers
+
 
 
 # plot results: --------------
