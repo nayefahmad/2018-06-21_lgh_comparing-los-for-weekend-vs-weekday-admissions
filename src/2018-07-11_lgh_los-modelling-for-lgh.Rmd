@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 
 library("tidyverse")
 library("magrittr")
@@ -41,7 +41,9 @@ df6.dummy.age %<>% mutate_if(is.character, factor)
 df7.dummy.dow <- read_csv(here("results", 
                                "wip", 
                                "2018-07-12_rgnl_los-dummy-data-effect-of-dow.csv"))
-df7.dummy.dow %<>% mutate_if(is.character, factor)
+df7.dummy.dow %<>% 
+    mutate_if(is.character, factor)%>% 
+    filter(!is.na(losdays))
 
 
 ```
@@ -49,14 +51,18 @@ df7.dummy.dow %<>% mutate_if(is.character, factor)
 # Summary
 Preliminary data analysis shows that Length of stay (LOS) at Lions Gate Hospital may depend on the day of the week of admission. To test this hypothesis, we must isolate the effect of the day of week of admission by adjusting for other variables such as patient age and admission nursing unit. 
 
-To quantify these relationship, we developed a multivariate model to predict LOS using patient age, admission unit and admission day of week. Using all 3 of these predictors improves prediction by around 4.4% compared to the baseline model that only uses day of week (using mean absolute error for comparison). Thus, even though the model was built primarily for inference, it may be useful for prediction as well. 
+To quantify these relationship, we developed a multivariate model to predict average LOS using patient age, admission unit and admission day of week. Using all 3 of these predictors improves prediction by around 4.4% compared to the baseline model that only uses nursing unit to predict average LOS (using mean absolute error for comparison). Thus, even though the model was built primarily for inference, it may be useful for prediction as well. 
 
-We conclude that there is an effect on LOS due to day of week of admission. Using Monday as a baseline, patients addmitted on Thursdays have a significantly higer LOS by `r round((exp(0.0528716) - 1)*100, 2)`%. Tuesdays, Wednesdays, Saturdays have significantly lower LOS by `r round((1- exp(-0.1137544)) *100, 2)`%, `r round((1-exp(-0.0895939))*100, 2)`% and `r round((1 - exp(-0.1633314))*100, 2)`%. LOS on Fridays and Sundays is not significantly different from Mondays.  
+We conclude that there is an effect on LOS due to day of week of admission. Using Monday as a baseline, patients addmitted on Thursdays have a significantly higer LOS by `r round((exp(0.0528716) - 1)*100, 2)`% on average. Tuesdays, Wednesdays, Saturdays have significantly lower LOS by `r round((1- exp(-0.1137544)) *100, 2)`%, `r round((1-exp(-0.0895939))*100, 2)`% and `r round((1 - exp(-0.1633314))*100, 2)`%. LOS on Fridays and Sundays is not significantly different from Mondays.  
 
-Examples of other questions that arise from the interaction of these effects include: Is the effect of age different for patients admitted on weekdays versus weekends? Is the effect of weekends different in surgery units and medical units?
+Examples of other questions that arise from the interaction of the effects of age, nursing unit and day of week include: Is the effect of age different for patients admitted to different units, after adjusting for day of week? Is the effect of weekends different in surgery units and medical units after adjusting for age?  
 
 
 # Model interpretation
+The tables below illustrate how the model adjusts the predicted average LOS based on patient age and day of week. In the first table, only the age is varied for patients admitted on Monday to 4E and 6E. The first six rows show predictions for 4E, the next six show predictions for 6E. 
+
+In the second table, only day of week is varied for patients of age 40 admitted to 4E. 
+
 ### Effect of age (adjusted for other variables): 
 ```{r echo=FALSE} 
 pred <- predict(m4.los.vs.dow.age.unit, 
@@ -78,7 +84,7 @@ df6.dummy.age %>%
 ### Effect of day of week (adjusted for other variables): 
 ```{r echo=FALSE}
 pred <- predict(m4.los.vs.dow.age.unit, 
-        newdata = df7.dummy.dow)
+                newdata = df7.dummy.dow )
 
 df7.dummy.dow %>% 
     mutate(los.predicted = pred) %>% 
@@ -103,8 +109,22 @@ p14.actual.vs.pred.m4
 ```
 
 ```{r}
-p17.test.data.actual.vs.pred.m0.unit
+p15.test.data.actual.vs.pred.m4
 ```
+
+```{r}
+df5.error.comparison %>% 
+    kable()
+```
+
+
+
+
+# Other vars to consider
+[Gender]
+[AdmissionCategoryGroup]
+[AdmissionPatientServiceDescription]
+
 
 
 
@@ -119,9 +139,3 @@ summary(m4.los.vs.dow.age.unit)
 
 
 
-
-
-# Other vars
-[Gender]
-[AdmissionCategoryGroup]
-[AdmissionPatientServiceDescription]
