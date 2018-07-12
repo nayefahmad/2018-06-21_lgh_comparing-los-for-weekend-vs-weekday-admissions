@@ -98,7 +98,7 @@ m4.rmse.filtered <- df4.testing.with.predicted %>%
 
 # compare m4 with m0.unit: 
 # m0.unit.rmse.filtered; m4.rmse.filtered
-(m4.rmse.filtered - m0.unit.rmse.filtered)/m0.unit.rmse.filtered  # 5% reduction in RMSE
+(m4.rmse.filtered - m0.unit.rmse.filtered)/m0.unit.rmse.filtered  # 0.5% reduction in RMSE
 
 
 # plot results: --------------

@@ -18,3 +18,11 @@ knitr::opts_chunk$set(echo = TRUE)
 1. No admissions to 4E in the test set (Jan to Feb 2018)? Is this normal? Ans. Maybe. There were only 2 in same period in 2017. 
 2. 
 
+
+
+
+
+# Other vars
+[Gender]
+[AdmissionCategoryGroup]
+[AdmissionPatientServiceDescription]
