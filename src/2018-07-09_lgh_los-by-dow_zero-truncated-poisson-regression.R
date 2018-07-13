@@ -107,44 +107,44 @@ summary(m3.los.vs.dow)
 
 
 # > bootstrap confidence intervals for the model: -----------
-set.seed(10)
-bootresults <-
-    boot(df1.raw.data,
-         extract.coeffs.m3_function,
-         R = 1000)
-bootresults
-
-bootresults.df <- bootresults %>% 
-    tidy() %>%
-    mutate(param = rep(c("coeff", "stderror"), 7)) %>%
-    select(param, everything()); bootresults.df
-
-# todo: what is bias here? 
-
-# Estimating CIs: 
-params <- 
-    sapply(seq(1, 13, by=2), 
-           function(i){
-               out <- boot.ci(bootresults, 
-                              index = c(i, i+1), 
-                              type = c("perc", "basic"), 
-                              h = exp)  # back-transform parameter ==> coeff = 1 means no effect (since effects are multiplicative on scale of response var)
-               
-               # print(out)
-               # str(out)
-               
-               with(out, c(Est = t0,  # The observed value of the statistic of interest
-                           pLL = percent[4],  # The intervals calculated using the bootstrap percentile method.
-                           pUL = percent[5], 
-                           basicLL = basic[4],  # The intervals calculated using the basic bootstrap method.
-                           basicUL = basic[5]))
-           }) %>% 
-    t() 
-
-# add labels: 
-row.names(params) <- names(coef(m3.los.vs.dow))
-
-params
+# set.seed(10)
+# bootresults <-
+#     boot(df1.raw.data,
+#          extract.coeffs.m3_function,
+#          R = 1000)
+# bootresults
+# 
+# bootresults.df <- bootresults %>% 
+#     tidy() %>%
+#     mutate(param = rep(c("coeff", "stderror"), 7)) %>%
+#     select(param, everything()); bootresults.df
+# 
+# # todo: what is bias here? 
+# 
+# # Estimating CIs: 
+# params <- 
+#     sapply(seq(1, 13, by=2), 
+#            function(i){
+#                out <- boot.ci(bootresults, 
+#                               index = c(i, i+1), 
+#                               type = c("perc", "basic"), 
+#                               h = exp)  # back-transform parameter ==> coeff = 1 means no effect (since effects are multiplicative on scale of response var)
+#                
+#                # print(out)
+#                # str(out)
+#                
+#                with(out, c(Est = t0,  # The observed value of the statistic of interest
+#                            pLL = percent[4],  # The intervals calculated using the bootstrap percentile method.
+#                            pUL = percent[5], 
+#                            basicLL = basic[4],  # The intervals calculated using the basic bootstrap method.
+#                            basicUL = basic[5]))
+#            }) %>% 
+#     t() 
+# 
+# # add labels: 
+# row.names(params) <- names(coef(m3.los.vs.dow))
+# 
+# params
 
 # looks like only the intercept & Thursday are significant now!!
 # All other CIs include 1 ==> no multiplicative effect. 
@@ -278,11 +278,13 @@ p14.actual.vs.pred.m4 <-
                shape = 1, 
                colour = "blue") +
     scale_y_continuous(breaks = seq(0,120, by = 10)) + 
-    coord_cartesian(ylim = c(0,40)) + 
+    coord_cartesian(ylim = c(0,30)) + 
     stat_smooth(method = "loess") + 
     
     labs(title = "Modelling LOS at Lions Gate Hospital",
-         subtitle = "Actual LOS vs fitted values using zero-truncated Poisson regression model \nSince loess line passes through origin with slope ~1.0, model is performing well \nModel uses Age, Day of Week and Nursing Unit as predictors") + 
+         subtitle = "Actual LOS vs fitted values using zero-truncated Poisson regression model \nSince loess line passes through origin with slope ~1.0, model is performing well \nModel uses Age, Day of Week and Nursing Unit as predictors", 
+         x = "Predicted average LOS", 
+         y = "Actual LOS") + 
     
     theme_classic(base_size = 14); p14.actual.vs.pred.m4
 
@@ -300,17 +302,17 @@ p14.actual.vs.pred.m4 <-
 
 
 # WRITE OUTPUTS: --------------
-saveRDS(m3.los.vs.dow, 
-        here("results", 
-             "output from src", 
-             "m3.los.vs.dow"))
-
-saveRDS(m3.los.vs.dow, 
-        here("results", 
-             "output from src", 
-             "m3.los.vs.dow.Rds"))
-
-saveRDS(m4.los.vs.dow.age.unit, 
-        here("results", 
-             "output from src", 
-             "m4.los.vs.dow.age.unit.Rds"))
+# saveRDS(m3.los.vs.dow, 
+#         here("results", 
+#              "output from src", 
+#              "m3.los.vs.dow"))
+# 
+# saveRDS(m3.los.vs.dow, 
+#         here("results", 
+#              "output from src", 
+#              "m3.los.vs.dow.Rds"))
+# 
+# saveRDS(m4.los.vs.dow.age.unit, 
+#         here("results", 
+#              "output from src", 
+#              "m4.los.vs.dow.age.unit.Rds"))

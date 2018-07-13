@@ -35,7 +35,7 @@ df2.test.data %<>%
 df4.testing.with.predicted <- 
     df2.test.data %>% 
     mutate(m0.dow.pred = predict(m0.ols.dow, 
-                             newdata = df2.test.data),
+                                 newdata = df2.test.data),
            m0.unit.pred = predict(m0.ols.unit, 
                                   newdata = df2.test.data),
            m3.pred = exp(predict(m3.los.vs.dow, 
@@ -145,8 +145,10 @@ p15.test.data.actual.vs.pred.m4 <-
     coord_cartesian(ylim = c(0,30)) + 
     stat_smooth(method = "loess") + 
     
-    labs(title = "Predicting LOS at Lions Gate Hospital (test data from Jan to Feb 2018)",
-         subtitle = "Actual LOS vs predicted values using zero-truncated Poisson regression model \nModel is performing well up to fitted values of 20 days\nModel uses Age, Day of Week and Nursing Unit as predictors") + 
+    labs(title = "Predicting LOS at Lions Gate Hospital (test data from Jan \nto Feb 2018)",
+         subtitle = "Actual LOS vs predicted values using zero-truncated Poisson regression model \nModel is performing well up to fitted values of 20 days\nModel uses Age, Day of Week and Nursing Unit as predictors",
+         x = "Predicted average LOS", 
+         y = "Actual LOS") + 
     
     theme_classic(base_size = 14); p15.test.data.actual.vs.pred.m4
 
