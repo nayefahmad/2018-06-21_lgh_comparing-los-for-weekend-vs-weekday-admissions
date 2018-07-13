@@ -17,8 +17,9 @@ SELECT [AdmissionFacilityLongName]
 FROM [ADTCMart].[ADTC].[AdmissionDischargeView]
   
 where AdmissionFacilityLongName = 'Lions Gate Hospital' 
-	and AdjustedAdmissionDate between '2017-01-01' and '2017-12-31' 
+	and AdjustedAdmissionDate between '2017-01-01' and '2017-02-28' 
 	and AdmissionNursingUnitCode not in ('EIP', 'N/A', 'en1', 'en2', 'nsy', 'nsh', '3po', 'dcs', 'es1', 'es2', 'es3', 'end', 'nsh ssh' , 'scn') 
+	--and AdmissionNursingUnitCode  = '4e' 
 
 order by AdjustedAdmissionDate
 	, [PatientId]

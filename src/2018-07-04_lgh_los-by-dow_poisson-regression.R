@@ -97,7 +97,7 @@ p6.los.by.day.by.unit <-
 
 # > 0th model: for comparison, fit a OLS regression: ---------
 m0.ols.dow <- lm(losdays ~ dow, 
-             data = df1.raw.data)
+                 data = df1.raw.data)
 
 par(mfrow = c(2,2))
 plot(m0.ols.dow)
