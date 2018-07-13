@@ -62,11 +62,11 @@ df7.dummy.dow %<>%
 ## Summary
 Preliminary data analysis shows that Length of stay (LOS) at Lions Gate Hospital may depend on the __day of the week of admission__. To test this hypothesis, we must isolate the effect of the day of week of admission by adjusting for other variables such as __patient age__ and __admission nursing unit__. 
 
-To quantify these relationship, we developed a multivariate model to predict average LOS using patient age, admission unit and admission day of week. Using all 3 of these predictors improves prediction by around 4.4% compared to the baseline model that only uses nursing unit to predict average LOS (using mean absolute error for comparison). Thus, even though the model was built primarily for inference, it may be useful for prediction as well. The mean absolute error of predictions from the model is 3.1 days. 
+To quantify these relationship, we developed a multivariate model to predict average LOS using patient age, admission unit and admission day of week. Using all 3 of these variables improves prediction by around 4.4% compared to the baseline model that only uses nursing unit to predict average LOS (using mean absolute error for comparison). Thus, even though the model was built primarily for inference, it may be useful for prediction as well. The mean absolute error of predictions from the model is 3.1 days. 
 
 We conclude that there is an effect on LOS due to day of week of admission. Using Monday as a baseline: 
 
-* patients addmitted on __Thursdays__ have a significantly higer LOS by `r round((exp(0.0528716) - 1)*100, 2)`% on average. 
+* patients admitted on __Thursdays__ have a significantly higher LOS by `r round((exp(0.0528716) - 1)*100, 2)`% on average. 
 * On __Tuesdays, Wednesdays, and Saturdays__, average LOS is significantly lower by `r round((1- exp(-0.1137544)) *100, 2)`%, `r round((1-exp(-0.0895939))*100, 2)`% and `r round((1 - exp(-0.1633314))*100, 2)`%. 
 * LOS on __Fridays and Sundays__ is not significantly different from Mondays.  
 
@@ -76,7 +76,8 @@ $${log(avgLOS)_i} = \alpha + \beta_{1} nurse.unit_{i} + \beta_{2}  age_{i} + \be
 The coefficients for each level of the variables in the model are included in the appendix. 
 
 
-Examples of other questions that arise from the interaction of the effects of age, nursing unit and day of week include: Is the effect of age different for patients admitted to different units, after adjusting for day of week? Is the effect of weekends different in surgery units and medical units after adjusting for age?  
+Examples of other questions that arise from the interaction of the effects of age, nursing unit and day of week include: Is the effect of age different for patients admitted to different units, after adjusting for day of week? Is the effect of weekends different in surgery units and medical units after adjusting for age? These questions are important because managers make decisions based on their intuitive understanding of these relationshipS. In LGH, a new position was recently created ("dishcarge chaser") partly based on the belief that patients admitted around the weekend have longer LOS.  
+
 
 ------------------------------------------------
 
@@ -134,10 +135,13 @@ df7.dummy.dow %>%
 ---------------------------------------------------
 
 ## Methodology
-LOS data is strictly positive and highly non-normal, which is why ordinary least squares regression is not appropriate. We used a zero-truncated Poisson regression model. The model was trained on data from the full calendar year of 2017, and tested on data from January and February 2018. 
+LOS data is strictly positive and highly non-normal, which is why ordinary least squares regression is not appropriate. We used a zero-truncated Poisson regression model (for details, see [this example](https://stats.idre.ucla.edu/r/dae/zero-truncated-poisson/)). The model was trained on data from the full calendar year of 2017, and tested on data from January and February 2018. 
 
 Likelihood ratio tests were used to test for significant improvements in model performance as variables were added to the model. Model residuals were inspected visually and using quantile regression to assess the assumption that the response variable has a zero-truncated Poisson distribution. 
 
+The graphs below illustrate the model performance on the training and test data.
+
+\  
 
 ```{r}
 p14.actual.vs.pred.m4
@@ -158,8 +162,8 @@ p15.test.data.actual.vs.pred.m4
 \  
 \  
 
-# Extensions to the model
-It may be worth extending this model both as a tool for inference about the relationships between variables that affect LOS, and for the purpose of predicting LOS at Lions Gate Hospital. 
+# Possible extensions to the model
+It may be worth extending this model both as a tool for inference about the relationships between variables that affect LOS, and for the purpose of predicting LOS at Lions Gate Hospital. The following variables may be useful in improving the predictions of the model: 
 
 * Gender
 * Admission Category Group              
@@ -169,11 +173,12 @@ It may be worth extending this model both as a tool for inference about the rela
 * Chronic diseases 
 
 
-
+------------------------------
 \  
 \  
 \  
-
+\  
+\  
 
 # Appendix: Zero-truncated Poisson Regression Model
 ```{r}
