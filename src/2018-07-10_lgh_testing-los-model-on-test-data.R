@@ -44,6 +44,8 @@ df4.testing.with.predicted <-
                                  newdata = df2.test.data)),
            m5.pred = exp(predict(m5.los.vs.dow.age.unit.year, 
                                  newdata = df2.test.data)),
+           m6.1.pred = exp(predict(m6.1.add.service, 
+                                 newdata = df2.test.data)),
            
            # find squared errors: 
            m0.dow.err.sq = (losdays - m0.dow.pred)^2,
@@ -51,11 +53,13 @@ df4.testing.with.predicted <-
            m3.err.sq = (losdays - m3.pred)^2, 
            m4.err.sq = (losdays - m4.pred)^2,
            m5.err.sq = (losdays - m5.pred)^2,
+           m6.1.err.sq = (losdays - m6.1.pred)^2,
            
            # find absolute errors: 
            m0.unit.err.abs = abs(losdays - m0.unit.pred), 
            m4.err.abs = abs(losdays - m4.pred), 
-           m5.err.abs = abs(losdays - m5.pred))
+           m5.err.abs = abs(losdays - m5.pred), 
+           m6.1.err.abs = abs(losdays - m6.1.pred))
 
 summary(df4.testing.with.predicted)
 
@@ -64,7 +68,8 @@ summary(df4.testing.with.predicted)
 (m0.unit.rmse <- sqrt(mean(df4.testing.with.predicted$m0.unit.err.sq)))  # 7.567942
 (m3.rmse <- sqrt(mean(df4.testing.with.predicted$m3.err.sq)))  # 8.72092
 (m4.rmse <- sqrt(mean(df4.testing.with.predicted$m4.err.sq)))  # 7.547195
-(m5.rmse <- sqrt(mean(df4.testing.with.predicted$m5.err.sq)))
+(m5.rmse <- sqrt(mean(df4.testing.with.predicted$m5.err.sq)))  # 7.471976
+(m6.1.rmse <- sqrt(mean(df4.testing.with.predicted$m6.1.err.sq)))  # 7.334444
 # 13% reduction of RMSE from OLS using DOW 
 # 0.3% reduction of RMSE from OLS using unit.code
 
@@ -113,6 +118,15 @@ m5.rmse.filtered <- df4.testing.with.predicted %>%
     sqrt()
 
 
+m6.1.rmse.filtered <- df4.testing.with.predicted %>% 
+    filter(losdays <= quantile(df4.testing.with.predicted$losdays, quantile.upper), 
+           losdays >= quantile(df4.testing.with.predicted$losdays, quantile.lower)) %>%
+    select(m6.1.err.sq) %>% 
+    unlist() %>% 
+    as.vector() %>% 
+    mean(., na.rm = TRUE) %>% 
+    sqrt()
+
 
 # compare m4 with m0.dow: 
 # m0.dow.rmse.filtered; m4.rmse.filtered
@@ -125,15 +139,19 @@ m5.rmse.filtered <- df4.testing.with.predicted %>%
 # compare m5 with m0.unit: 
 (m5.rmse.filtered - m0.unit.rmse.filtered)/m0.unit.rmse.filtered  # 1.2% reduction in RMSE over entire range; 15% reduction in RMSE over bottom 90% of LOS data!! 
 
+# compare m6.1 with m0.unit: 
+(m6.1.rmse.filtered - m0.unit.rmse.filtered)/m0.unit.rmse.filtered  # 1.2% reduction in RMSE over entire range; 16% reduction in RMSE over bottom 90% of LOS data!! 
+
 
 # compare MAE of m4 and m5 with m0.unit: --------------
 (m0.unit.mae <- mean(df4.testing.with.predicted$m0.unit.err.abs))  # 3.271747
 (m4.mae <- mean(df4.testing.with.predicted$m4.err.abs))  # 3.238862 
 (m5.mae <- mean(df4.testing.with.predicted$m5.err.abs))  # 2.98388 
+(m6.1.mae <- mean(df4.testing.with.predicted$m6.1.err.abs))  # 2.934371 
 
 (m4.mae - m0.unit.mae)/m0.unit.mae  # 1.00% reduction in MAE 
 (m5.mae - m0.unit.mae)/m0.unit.mae  # 8.799% reduction in MAE!! 
-
+(m6.1.mae - m0.unit.mae)/m0.unit.mae  # 10.3% reduction in MAE!! 
 
 
 
@@ -141,13 +159,16 @@ m5.rmse.filtered <- df4.testing.with.predicted %>%
 df5.error.comparison <- 
     data.frame(model = c("los ~ unit (OLS)", 
                          "los ~ unit + age + dow (0-trunc. Pois)", 
-                         "los ~ unit + age + dow + year (0-trunc. Pois)"), 
+                         "los ~ unit + age + dow + year (0-trunc. Pois)", 
+                         "los ~ unit + age + dow + year + service (0-trunc. Pois)"), 
                rmse = c(m0.unit.rmse, 
                         m4.rmse, 
-                        m5.rmse), 
+                        m5.rmse, 
+                        m6.1.rmse), 
                mae = c(m0.unit.mae, 
                        m4.mae, 
-                       m5.mae))
+                       m5.mae, 
+                       m6.1.mae))
 
 # so, RMSE or MAE? 
 # ans. It's complicated? https://www.geosci-model-dev-discuss.net/7/C473/2014/gmdd-7-C473-2014-supplement.pdf 
@@ -190,7 +211,7 @@ p15.test.data.actual.vs.pred.m4 <-
 # 
 
 
-
+# model m5: 
 p21.test.data.actual.vs.pred.m5 <- 
     df4.testing.with.predicted %>% 
     ggplot(aes(x = m5.pred, 
@@ -200,8 +221,8 @@ p21.test.data.actual.vs.pred.m5 <-
                shape = 1, 
                colour = "blue") +
     scale_y_continuous(breaks = seq(0,120, by = 10)) + 
-    coord_cartesian(ylim = c(0,30), 
-                    xlim = c(0,30)) + 
+    # coord_cartesian(ylim = c(0,30), 
+    #                 xlim = c(0,30)) + 
     stat_smooth(method = "loess") + 
     geom_abline(intercept = 0, 
                 slope = 1, 
@@ -215,6 +236,29 @@ p21.test.data.actual.vs.pred.m5 <-
     theme_classic(base_size = 14); p21.test.data.actual.vs.pred.m5
 
 
+# model m6: 
+p25.test.data.actual.vs.pred.m6 <- 
+    df4.testing.with.predicted %>% 
+    ggplot(aes(x = m6.1.pred, 
+               y = losdays)) +
+    geom_point(aes(x = m6.1.pred, 
+                   y = losdays), 
+               shape = 1, 
+               colour = "blue") +
+    scale_y_continuous(breaks = seq(0,120, by = 10)) + 
+    # coord_cartesian(ylim = c(0,30), 
+    #                 xlim = c(0,30)) + 
+    stat_smooth(method = "loess") + 
+    geom_abline(intercept = 0, 
+                slope = 1, 
+                colour = "grey50") + 
+    
+    labs(title = "Predicting LOS at Lions Gate Hospital (test data from Jan \nto Feb 2018)",
+         subtitle = "Actual LOS vs predicted values using zero-truncated Poisson regression model \nModel is performing well up to fitted values of 20 days\nModel uses Age, Day of Week, Nursing Unit, Year & Service as predictors",
+         x = "Predicted average LOS", 
+         y = "Actual LOS") + 
+    
+    theme_classic(base_size = 14); p25.test.data.actual.vs.pred.m6
 
 
 
@@ -253,11 +297,14 @@ p17.test.data.actual.vs.pred.m0.unit <-
                    y = losdays), 
                shape = 1, 
                colour = "blue") +
-    scale_y_continuous(breaks = seq(0,120, by = 2)) + 
-    coord_cartesian(ylim = c(0,25)) + 
-    stat_smooth(method = "loess") + 
+    # scale_y_continuous(breaks = seq(0,120, by = 10)) + 
+    # coord_cartesian(ylim = c(0,25)) + 
+    stat_smooth(method = "gam") +  # loess is acting weird 
+    geom_abline(intercept = 0,
+                slope = 1,
+                color = "grey50") + 
     
-    labs(title = "Null model for predicting LOS at Lions Gate Hospital using admission unit", 
+    labs(title = "Null model for predicting LOS at Lions Gate Hospital using \nadmission unit", 
          subtitle = "This model simply calculates average by admission unit, and uses that as prediction \nWide CIs for average show that there is a lot of unexplained variation") + 
     
     theme_classic(base_size = 14); p17.test.data.actual.vs.pred.m0.unit

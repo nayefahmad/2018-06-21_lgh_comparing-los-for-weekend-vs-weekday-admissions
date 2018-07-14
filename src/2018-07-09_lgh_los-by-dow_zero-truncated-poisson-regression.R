@@ -31,7 +31,7 @@ if(!exists("df1.raw.data")){
 }
 
 str(df1.raw.data)
-summary(df1.raw.data)
+summary(df1.raw.data$service)
 
 
 
@@ -281,7 +281,7 @@ summary(m6.los.vs.dow.age.unit.year.gender)
 # gender not significant 
 
 m6.1.add.service <- 
-    vglm(losdays ~ dow + age + unit.code + yearsfrom2016 + admissionpatientservicecode, 
+    vglm(losdays ~ dow + age + unit.code + yearsfrom2016 + service, 
          family = pospoisson(), 
          data = df1.raw.data)
 summary(m6.1.add.service)    
@@ -330,13 +330,13 @@ p23.add.quantiles <-
 #**********************************************************************
 # Since resids of m4 look ok, we can proceed to interpret & compare the models 
 
-summary(m3.los.vs.dow)  # Log-likelihood: -24361.36 on 4879 degrees of freedom
+summary(m3.los.vs.dow)  # Log-likelihood: -47783 on 4879 degrees of freedom
 logLik(m3.los.vs.dow)
 
-summary(m3.1.los.vs.dow.unit)  # Log-likelihood: -15399.42 on 4860 degrees of freedom
+summary(m3.1.los.vs.dow.unit)  # Log-likelihood: -32224 on 4860 degrees of freedom
 logLik(m3.1.los.vs.dow.unit) 
 
-summary(m4.los.vs.dow.age.unit)  # Log-likelihood: -15035.2 on 4859 degrees of freedom
+summary(m4.los.vs.dow.age.unit)  # Log-likelihood: -31724 on 4859 degrees of freedom
 logLik(m4.los.vs.dow.age.unit)
 
 summary(m5.los.vs.dow.age.unit.year)  # Log-likelihood: -31609 on 4859 degrees of freedom
@@ -378,7 +378,8 @@ df3.training.with.predicted <-
     filter(!is.na(losdays)) %>% 
     mutate(m3.pred = exp(predict(m3.los.vs.dow)), 
            m4.pred = exp(predict(m4.los.vs.dow.age.unit)), 
-           m5.pred = exp(predict(m5.los.vs.dow.age.unit.year)))
+           m5.pred = exp(predict(m5.los.vs.dow.age.unit.year)), 
+           m6.1.pred = exp(predict(m6.1.add.service)))
 
 
 # model m3: 
@@ -428,7 +429,7 @@ p14.actual.vs.pred.m4 <-
 # todo: don't know how to do this
 
 
-# model m4: 
+# model m5: 
 p20.actual.vs.pred.m5 <- 
     df3.training.with.predicted %>% 
     ggplot(aes(x = m5.pred, 
@@ -454,6 +455,29 @@ p20.actual.vs.pred.m5 <-
 
 
 
+# model m6.1: 
+p24.actual.vs.pred.m6.1 <- 
+    df3.training.with.predicted %>% 
+    ggplot(aes(x = m6.1.pred, 
+               y = losdays)) +
+    geom_point(aes(x = m6.1.pred, 
+                   y = losdays), 
+               shape = 1, 
+               colour = "blue") +
+    scale_y_continuous(breaks = seq(0,120, by = 10)) + 
+    coord_cartesian(ylim = c(0,30), 
+                    xlim = c(0,30)) + 
+    stat_smooth(method = "loess") + 
+    geom_abline(intercept = 0, 
+                slope = 1,
+                colour = "grey50") + 
+    
+    labs(title = "Modelling LOS at Lions Gate Hospital",
+         subtitle = "Actual LOS vs fitted values using zero-truncated Poisson regression model \nSince loess line passes through origin with slope ~1.0, model is performing well \nModel uses Age, Day of Week, Unit, Year & Service as predictors", 
+         x = "Predicted average LOS", 
+         y = "Actual LOS") + 
+    
+    theme_classic(base_size = 14); p24.actual.vs.pred.m6.1
 
 
 
