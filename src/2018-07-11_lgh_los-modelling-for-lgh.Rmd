@@ -60,11 +60,11 @@ df7.dummy.dow %<>%
 ```
 
 ## Summary
-Preliminary data analysis shows that Length of stay (LOS) at Lions Gate Hospital may depend on the __day of the week of admission__. To test this hypothesis, we must isolate the effect of the day of week of admission by adjusting for other variables such as __patient age__ and __admission nursing unit__. 
+Preliminary data analysis shows that Length of stay (LOS) at Lions Gate Hospital may depend on the __day of the week of admission__. To test this hypothesis, we must isolate the effect of the day of week of admission by adjusting for other variables such as __patient age__ and __admission nursing unit__. We must also determine whether observed differences can be attributed to chance alone, or whether they represent true underlying differences. 
 
-To quantify these relationship, we developed a multivariate model to predict average LOS using patient age, admission unit and admission day of week. Using all 3 of these variables improves prediction by around 4.4% compared to the baseline model that only uses nursing unit to predict average LOS (using mean absolute error for comparison). Thus, even though the model was built primarily for inference, it may be useful for prediction as well. The mean absolute error of predictions from the model is 3.1 days. 
+For this purpose, we developed a multivariate model to predict average LOS using patient age, admission unit and admission day of week. Using all 3 of these variables improves prediction by around 4.4% compared to the baseline model that uses only nursing unit to predict average LOS (using mean absolute error for comparison). Thus, even though the model was built primarily for inference, it may be useful for prediction as well. The mean absolute error of predictions from the model is 3.1 days. 
 
-We conclude that there is an effect on LOS due to day of week of admission. Using Monday as a baseline: 
+We conclude that there is an effect on LOS due to day of week of admission. Using __Monday as a baseline__: 
 
 * patients admitted on __Thursdays__ have a significantly higher LOS by `r round((exp(0.0528716) - 1)*100, 2)`% on average. 
 * On __Tuesdays, Wednesdays, and Saturdays__, average LOS is significantly lower by `r round((1- exp(-0.1137544)) *100, 2)`%, `r round((1-exp(-0.0895939))*100, 2)`% and `r round((1 - exp(-0.1633314))*100, 2)`%. 
@@ -76,15 +76,17 @@ $${log(avgLOS)_i} = \alpha + \beta_{1} nurse.unit_{i} + \beta_{2}  age_{i} + \be
 The coefficients for each level of the variables in the model are included in the appendix. 
 
 
-Examples of other questions that arise from the interaction of the effects of age, nursing unit and day of week include: Is the effect of age different for patients admitted to different units, after adjusting for day of week? Is the effect of weekends different in surgery units and medical units after adjusting for age? These questions are important because managers make decisions based on their intuitive understanding of these relationshipS. In LGH, a new position was recently created ("dishcarge chaser") partly based on the belief that patients admitted around the weekend have longer LOS.  
+Examples of other questions that arise from the interaction of the effects of age, nursing unit and day of week include: Is the effect of age different for patients admitted to different units, after adjusting for day of week? Is the effect of weekends different in surgery units and medical units after adjusting for age? These questions are important because managers make decisions based on their intuitive understanding of these relationships. In LGH, a new position was recently created ("dishcarge chaser") partly based on the belief that patients admitted around the weekend have longer LOS.  
 
 
 ------------------------------------------------
 
 ## Illustrative Examples 
-The tables below illustrate how the model adjusts the predicted average LOS based on patient age and day of week. In the first table, only the age is varied for patients admitted on Monday to 4E and 6E. The first six rows show predictions for 4E, the next six show predictions for 6E. 
+The tables below illustrate how the model adjusts the predicted average LOS based on patient age and admission day of week. In the first table, only the age is varied for patients admitted on Monday to 4E and 6E units. The first six rows show predictions for 4E, the next six show predictions for 6E. 
 
-In the second table, only day of week is varied for patients of age 40 admitted to 4E and 6E. 
+In the second table, only day of week is varied for patients of age 40 years admitted to 4E and 6E. 
+
+\  
 
 #### Effect of age (adjusted for other variables): 
 ```{r echo=FALSE} 
@@ -169,6 +171,7 @@ It may be worth extending this model both as a tool for inference about the rela
 * Admission Category Group              
 * Admission Patient Service (current encounter and previous encounters)
 * Number of previous acute episodes in last year 
+* Number of previous ED visits in last year 
 * ED admit vs direct admit 
 * Chronic diseases 
 
