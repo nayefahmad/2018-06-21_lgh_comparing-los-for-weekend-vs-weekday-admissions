@@ -268,6 +268,63 @@ p19.add.quantiles <-
 
 
 
+
+
+#***************************************************************
+# 5) 5th model: los ~ dow + age + unit.code + year + gender/service --------
+#***************************************************************
+m6.los.vs.dow.age.unit.year.gender <- 
+    vglm(losdays ~ dow + age + unit.code + yearsfrom2016 + gender, 
+         family = pospoisson(), 
+         data = df1.raw.data)
+summary(m6.los.vs.dow.age.unit.year.gender)
+# gender not significant 
+
+m6.1.add.service <- 
+    vglm(losdays ~ dow + age + unit.code + yearsfrom2016 + admissionpatientservicecode, 
+         family = pospoisson(), 
+         data = df1.raw.data)
+summary(m6.1.add.service)    
+
+
+# > residual diagnostics: ------------
+m6.1.output <- data.frame(resid = resid(m6.1.add.service),
+                        fitted = fitted(m6.1.add.service))
+
+p22.resid.vs.fitted.m6.1 <- 
+    ggplot(m6.1.output, 
+           aes(fitted, resid)) +
+    geom_jitter(position=position_jitter(width=.25),
+                alpha=.25) +
+    stat_smooth(method="loess") + 
+    # scale_y_log10() + 
+    theme_classic(base_size = 16); p22.resid.vs.fitted.m6.1
+
+# some concern around resids for low fitted values: model seems to be overestimating LOS
+
+# histogram of resids: 
+# todo: does this look right? Should it be a zero-truncated Poisson distribution? 
+m6.1.output$resid %>% hist
+
+# > identifying influential points: quantile regression: ------
+# there are some values that look rather extreme. To see if these have much
+# influence, we can fit lines using quantile regression, these lines represent 
+# the 75th, 50th, and 25th percentiles.
+
+p23.add.quantiles <- 
+    ggplot(m6.1.output, 
+           aes(fitted, resid)) +
+    geom_jitter(position=position_jitter(width=.25),
+                alpha=.25) + 
+    stat_quantile(method = "rq") + 
+    theme_classic(base_size = 16); p23.add.quantiles
+
+# the spread stays pretty much the same across the fitted values, so that's good 
+
+
+
+
+
 #**********************************************************************
 # 5) model comparison : ------
 #**********************************************************************
@@ -282,8 +339,13 @@ logLik(m3.1.los.vs.dow.unit)
 summary(m4.los.vs.dow.age.unit)  # Log-likelihood: -15035.2 on 4859 degrees of freedom
 logLik(m4.los.vs.dow.age.unit)
 
-summary(m5.los.vs.dow.age.unit.year)  # Log-likelihood: -18360.87 on 4859 degrees of freedom
+summary(m5.los.vs.dow.age.unit.year)  # Log-likelihood: -31609 on 4859 degrees of freedom
 logLik(m5.los.vs.dow.age.unit.year)
+
+summary(m6.1.add.service)  # Log-likelihood: -29844 on 4859 degrees of freedom
+logLik(m6.1.add.service)
+
+
 
 # model with lowest deviance is best. deviance = -2*logLike
 # use lrtest to find whether difference in deviance is significant (diff in deviance has chi-sq. dist)
@@ -298,8 +360,11 @@ lrtest(m3.los.vs.dow, m3.1.los.vs.dow.unit)  # significant: adding unit variable
 # compare m3.1 and m4: 
 lrtest(m3.1.los.vs.dow.unit, m4.los.vs.dow.age.unit)  # significant: adding age variable works!
 
-# compare m4 and m4: 
+# compare m4 and m5: 
 lrtest(m4.los.vs.dow.age.unit, m5.los.vs.dow.age.unit.year)  # significant: adding year helps
+
+# compare m5 and m6.1: 
+lrtest(m5.los.vs.dow.age.unit.year, m6.1.add.service)  # significant!! adding service is good! 
 
 
 # examine predictions: note that these are in log units. 
