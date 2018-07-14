@@ -168,8 +168,12 @@ p15.test.data.actual.vs.pred.m4 <-
                shape = 1, 
                colour = "blue") +
     scale_y_continuous(breaks = seq(0,120, by = 10)) + 
-    coord_cartesian(ylim = c(0,30)) + 
+    coord_cartesian(ylim = c(0,30), 
+                    xlim = c(0,30)) + 
     stat_smooth(method = "loess") + 
+    geom_abline(intercept = 0, 
+                slope = 1, 
+                colour = "grey50") + 
     
     labs(title = "Predicting LOS at Lions Gate Hospital (test data from Jan \nto Feb 2018)",
          subtitle = "Actual LOS vs predicted values using zero-truncated Poisson regression model \nModel is performing well up to fitted values of 20 days\nModel uses Age, Day of Week and Nursing Unit as predictors",
@@ -199,13 +203,16 @@ p21.test.data.actual.vs.pred.m5 <-
     coord_cartesian(ylim = c(0,30), 
                     xlim = c(0,30)) + 
     stat_smooth(method = "loess") + 
+    geom_abline(intercept = 0, 
+                slope = 1, 
+                colour = "grey50") + 
     
     labs(title = "Predicting LOS at Lions Gate Hospital (test data from Jan \nto Feb 2018)",
          subtitle = "Actual LOS vs predicted values using zero-truncated Poisson regression model \nModel is performing well up to fitted values of 20 days\nModel uses Age, Day of Week, Nursing Unit & Year as predictors",
          x = "Predicted average LOS", 
          y = "Actual LOS") + 
     
-    theme_classic(base_size = 14); p15.test.data.actual.vs.pred.m4
+    theme_classic(base_size = 14); p21.test.data.actual.vs.pred.m5
 
 
 
