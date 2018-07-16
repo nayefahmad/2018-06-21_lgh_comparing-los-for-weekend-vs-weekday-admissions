@@ -31,9 +31,11 @@ df1.raw.data %<>%
          date = adjustedadmissiondate, 
          dow = day_of_week, 
          age = admissionage, 
-         unit.code = admissionnursingunitcode) %>% 
+         unit.code = admissionnursingunitcode,
+         service = admissionpatientservicecode) %>% 
     mutate(date = as.Date(date, '%m/%d/%Y'), 
-         ishomeless = as.factor(ishomeless), 
+         ishomeless = as.factor(ishomeless),
+         # yearsfrom2016 = as.factor(yearsfrom2016),  # todo: is it a problem if this is coded as int? 
          dow = fct_relevel(dow, 
                            "Monday", 
                            "Tuesday", 
@@ -64,9 +66,11 @@ df2.test.data %<>%
            date = adjustedadmissiondate, 
            dow = day_of_week, 
            age = admissionage, 
-           unit.code = admissionnursingunitcode) %>% 
+           unit.code = admissionnursingunitcode,
+           service = admissionpatientservicecode) %>% 
     mutate(date = as.Date(date, '%m/%d/%Y'), 
            ishomeless = as.factor(ishomeless), 
+           # yearsfrom2016 = as.factor(yearsfrom2016),  # todo: is it a problem if this is coded as int? 
            dow = fct_relevel(dow, 
                              "Monday", 
                              "Tuesday", 
@@ -89,8 +93,8 @@ summary(df2.test.data$unit.code)
 
 
 # 3) WRITE OUTPUTS: ------------------
-write_csv(df1.raw.data, 
-          here("results",
-               "output from src", 
-               "2018-07-09_lgh_clean-data-los-by-dow.csv"))
+# write_csv(df1.raw.data, 
+#           here("results",
+#                "output from src", 
+#                "2018-07-09_lgh_clean-data-los-by-dow.csv"))
 
