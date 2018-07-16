@@ -97,14 +97,13 @@ summary(m3.los.vs.dow)
 
 # Coefficients: 
 #     Estimate Std. Error z value Pr(>|z|)    
-#     (Intercept)   1.472056   0.018248  80.670  < 2e-16 ***
-#     dowTuesday   -0.029231   0.024707  -1.183 0.236757    
-#     dowWednesday  0.002243   0.024023   0.093 0.925604    
-#     dowThursday   0.212826   0.023319   9.127  < 2e-16 ***
-#     dowFriday     0.189934   0.023720   8.007 1.17e-15 ***
-#     dowSaturday  -0.138598   0.037128  -3.733 0.000189 ***
-#     dowSunday     0.032899   0.034216   0.962 0.336293   
-
+#     (Intercept)   1.467914   0.012970 113.179  < 2e-16 ***
+#     dowTuesday   -0.011539   0.017657  -0.654 0.513411    
+#     dowWednesday -0.009788   0.017270  -0.567 0.570890    
+#     dowThursday   0.085173   0.017186   4.956  7.2e-07 ***
+#     dowFriday     0.061937   0.017558   3.528 0.000419 ***
+#     dowSaturday  -0.063450   0.025087  -2.529 0.011431 *  
+#     dowSunday    -0.054669   0.026001  -2.103 0.035504 *
 
 # > bootstrap confidence intervals for the model: -----------
 # set.seed(10)
@@ -172,10 +171,10 @@ m4.los.vs.dow.age.unit <-
 summary(m4.los.vs.dow.age.unit)
 
 # remember: coefficients represent additive effects on log(mu)
-# e.g. coeff of Thursday = 0.212826. 
+# e.g. coeff of Thursday = 0.0182793 
 # Therefore: 
-# log(mu) for Thursday = 1.472056 + 0.212826 = 1.684882.
-# mu for Thursday = exp(1.684882) = 5.391815
+# log(mu) for Thursday = 1.3289927 + 0.0182793 
+# mu for Thursday = exp(1.347272) = 3.846917
 
 
 # > residual diagnostics: ------------
@@ -225,11 +224,7 @@ m5.los.vs.dow.age.unit.year <-
          data = df1.raw.data)
 summary(m5.los.vs.dow.age.unit.year)
 
-# remember: coefficients represent additive effects on log(mu)
-# e.g. coeff of Thursday = 0.212826. 
-# Therefore: 
-# log(mu) for Thursday = 1.472056 + 0.212826 = 1.684882.
-# mu for Thursday = exp(1.684882) = 5.391815
+
 
 
 # > residual diagnostics: ------------
@@ -278,7 +273,7 @@ m6.los.vs.dow.age.unit.year.gender <-
          family = pospoisson(), 
          data = df1.raw.data)
 summary(m6.los.vs.dow.age.unit.year.gender)
-# gender not significant 
+# gender not significant? 
 
 m6.1.add.service <- 
     vglm(losdays ~ dow + age + unit.code + yearsfrom2016 + service, 
@@ -342,8 +337,11 @@ logLik(m4.los.vs.dow.age.unit)
 summary(m5.los.vs.dow.age.unit.year)  # Log-likelihood: -31609 on 4859 degrees of freedom
 logLik(m5.los.vs.dow.age.unit.year)
 
+summary(m6.los.vs.dow.age.unit.year.gender)  
+logLik(m6.los.vs.dow.age.unit.year.gender)  # -31553.45
+
 summary(m6.1.add.service)  # Log-likelihood: -29844 on 4859 degrees of freedom
-logLik(m6.1.add.service)
+logLik(m6.1.add.service)  # -29844
 
 
 
@@ -479,6 +477,10 @@ p24.actual.vs.pred.m6.1 <-
     
     theme_classic(base_size = 14); p24.actual.vs.pred.m6.1
 
+# ggsave(here("results", 
+#             "output from src", 
+#             "2017-07-09_lgh_training-data-los-vs-age-dow-unit-year-service.pdf"), 
+#        p24.actual.vs.pred.m6.1)
 
 
 
@@ -493,7 +495,13 @@ p24.actual.vs.pred.m6.1 <-
 #              "output from src", 
 #              "m3.los.vs.dow.Rds"))
 # 
-# saveRDS(m4.los.vs.dow.age.unit, 
-#         here("results", 
-#              "output from src", 
+# saveRDS(m4.los.vs.dow.age.unit,
+#         here("results",
+#              "output from src",
 #              "m4.los.vs.dow.age.unit.Rds"))
+# 
+# saveRDS(m6.1.add.service,
+#         here("results",
+#              "output from src",
+#              "m6.1.add.service.Rds"))
+
