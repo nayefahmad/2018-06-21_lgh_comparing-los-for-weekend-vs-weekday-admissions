@@ -154,8 +154,32 @@ m6.1.rmse.filtered <- df4.testing.with.predicted %>%
 (m6.1.mae - m0.unit.mae)/m0.unit.mae  # 10.3% reduction in MAE!! 
 
 
+# filtered MAE comparison: 
+quantile.upper <- .90
+quantile.lower <- 0
 
-# comparison table for m4 vs m0.unit: 
+m0.unit.mae.filtered <- df4.testing.with.predicted %>% 
+    filter(losdays <= quantile(df4.testing.with.predicted$losdays, quantile.upper), 
+           losdays >= quantile(df4.testing.with.predicted$losdays, quantile.lower)) %>%
+    select(m0.unit.err.abs) %>% 
+    unlist() %>% 
+    as.vector() %>% 
+    mean(., na.rm = TRUE) 
+
+m6.1.mae.filtered <- df4.testing.with.predicted %>% 
+    filter(losdays <= quantile(df4.testing.with.predicted$losdays, quantile.upper), 
+           losdays >= quantile(df4.testing.with.predicted$losdays, quantile.lower)) %>%
+    select(m6.1.err.abs) %>% 
+    unlist() %>% 
+    as.vector() %>% 
+    mean(., na.rm = TRUE) 
+
+
+(m6.1.mae.filtered - m0.unit.mae.filtered)/m0.unit.mae.filtered  # 17.3% reduction in MAE over bottom 90! of data 
+
+
+
+# comparison table for models:
 df5.error.comparison <- 
     data.frame(model = c("los ~ unit (OLS)", 
                          "los ~ unit + age + dow (0-trunc. Pois)", 
@@ -168,7 +192,11 @@ df5.error.comparison <-
                mae = c(m0.unit.mae, 
                        m4.mae, 
                        m5.mae, 
-                       m6.1.mae))
+                       m6.1.mae), 
+               mae.bottom.90perc.los = c(m0.unit.mae.filtered, 
+                                         "not calculated yet", 
+                                         "not calculated yet", 
+                                         m6.1.mae.filtered))
 
 # so, RMSE or MAE? 
 # ans. It's complicated? https://www.geosci-model-dev-discuss.net/7/C473/2014/gmdd-7-C473-2014-supplement.pdf 
@@ -221,19 +249,25 @@ p21.test.data.actual.vs.pred.m5 <-
                shape = 1, 
                colour = "blue") +
     scale_y_continuous(breaks = seq(0,120, by = 10)) + 
-    # coord_cartesian(ylim = c(0,30), 
-    #                 xlim = c(0,30)) + 
+    coord_cartesian(xlim = c(0,25)) +
     stat_smooth(method = "loess") + 
     geom_abline(intercept = 0, 
                 slope = 1, 
                 colour = "grey50") + 
     
     labs(title = "Predicting LOS at Lions Gate Hospital (test data from Jan \nto Feb 2018)",
-         subtitle = "Actual LOS vs predicted values using zero-truncated Poisson regression model \nModel is performing well up to fitted values of 20 days\nModel uses Age, Day of Week, Nursing Unit & Year as predictors",
+         subtitle = "Actual LOS vs predicted values using zero-truncated Poisson regression model \nModel uses Age, Day of Week, Nursing Unit & Year as predictors",
          x = "Predicted average LOS", 
          y = "Actual LOS") + 
     
     theme_classic(base_size = 14); p21.test.data.actual.vs.pred.m5
+
+# save output: 
+# ggsave(here("results",
+#             "output from src",
+#             "2018-07-13_lgh_test-data-performance-los-predictions-model-m5.pdf"),
+#        p21.test.data.actual.vs.pred.m5)
+
 
 
 # model m6: 
@@ -246,20 +280,24 @@ p25.test.data.actual.vs.pred.m6 <-
                shape = 1, 
                colour = "blue") +
     scale_y_continuous(breaks = seq(0,120, by = 10)) + 
-    # coord_cartesian(ylim = c(0,30), 
-    #                 xlim = c(0,30)) + 
+    coord_cartesian(xlim = c(0,25)) +
     stat_smooth(method = "loess") + 
     geom_abline(intercept = 0, 
                 slope = 1, 
                 colour = "grey50") + 
     
     labs(title = "Predicting LOS at Lions Gate Hospital (test data from Jan \nto Feb 2018)",
-         subtitle = "Actual LOS vs predicted values using zero-truncated Poisson regression model \nModel is performing well up to fitted values of 20 days\nModel uses Age, Day of Week, Nursing Unit, Year & Service as predictors",
+         subtitle = "Actual LOS vs predicted values using zero-truncated Poisson regression model\nModel uses Age, Day of Week, Nursing Unit, Year & Service as predictors",
          x = "Predicted average LOS", 
          y = "Actual LOS") + 
     
     theme_classic(base_size = 14); p25.test.data.actual.vs.pred.m6
 
+# output: 
+# ggsave(here("results",
+#             "output from src",
+#             "2018-07-13_lgh_test-data-performance-los-predictions-model-m6.1.pdf"),
+#        p25.test.data.actual.vs.pred.m6)
 
 
 
@@ -297,15 +335,16 @@ p17.test.data.actual.vs.pred.m0.unit <-
                    y = losdays), 
                shape = 1, 
                colour = "blue") +
+    
     # scale_y_continuous(breaks = seq(0,120, by = 10)) + 
-    # coord_cartesian(ylim = c(0,25)) + 
+    coord_cartesian(xlim = c(0,25)) + 
     stat_smooth(method = "gam") +  # loess is acting weird 
     geom_abline(intercept = 0,
                 slope = 1,
                 color = "grey50") + 
     
     labs(title = "Null model for predicting LOS at Lions Gate Hospital using \nadmission unit", 
-         subtitle = "This model simply calculates average by admission unit, and uses that as prediction \nWide CIs for average show that there is a lot of unexplained variation") + 
+         subtitle = "This model simply calculates average by admission unit, and uses that as prediction \nWithout adding predictors, the model cannot account for most of the variation") + 
     
     theme_classic(base_size = 14); p17.test.data.actual.vs.pred.m0.unit
 
@@ -326,3 +365,12 @@ p17.test.data.actual.vs.pred.m0.unit <-
 #                "output from src", 
 #                "2018-07-11_lgh_los-modelling-test-data-with-predictions.csv"))
 
+
+# all graphs in 1 file; 
+# pdf(here("results", 
+#          "output from src", 
+#          "2018-07-16_lgh_training-data-models-m0-4-5-6.pdf"))
+# p17.test.data.actual.vs.pred.m0.unit
+# p21.test.data.actual.vs.pred.m5
+# p25.test.data.actual.vs.pred.m6
+# dev.off()
