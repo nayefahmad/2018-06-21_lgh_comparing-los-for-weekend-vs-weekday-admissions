@@ -360,17 +360,26 @@ p17.test.data.actual.vs.pred.m0.unit <-
 
 
 # write output: -------------------------------
-# write_csv(df4.testing.with.predicted, 
-#           here("results", 
-#                "output from src", 
+# write_csv(df4.testing.with.predicted,
+#           here("results",
+#                "output from src",
 #                "2018-07-11_lgh_los-modelling-test-data-with-predictions.csv"))
 
 
 # all graphs in 1 file; 
 # pdf(here("results", 
 #          "output from src", 
-#          "2018-07-16_lgh_training-data-models-m0-4-5-6.pdf"))
+#          "2018-07-16_lgh_test-data-models-m0-4-5-6.pdf"))
 # p17.test.data.actual.vs.pred.m0.unit
 # p21.test.data.actual.vs.pred.m5
 # p25.test.data.actual.vs.pred.m6
 # dev.off()
+
+
+# model m6.1 training and test: 
+pdf(here("results", 
+         "output from src", 
+         "2018-07-17_lgh_training-and-test-model-m6.1.pdf"))
+p24.actual.vs.pred.m6.1
+p25.test.data.actual.vs.pred.m6
+dev.off()
