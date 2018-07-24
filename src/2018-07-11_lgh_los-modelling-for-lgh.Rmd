@@ -60,22 +60,30 @@ df7.dummy.dow %<>%
 ```
 
 ## todo: 
-* Update dummy data to include all fields
-* ? 
+* Update dummy data to include all fields, use model 6.1 instead of 4
+* Change baseline med service to something other than ALC. 
+* ??
 
 \  
 \  
 
 ## Summary
-Preliminary data analysis shows that Length of stay (LOS) at Lions Gate Hospital may depend on the __day of the week of admission__. To test this hypothesis, we must isolate the effect of the day of week of admission by adjusting for other variables such as __patient age__ and __admission nursing unit__. We must also determine whether observed differences can be attributed to chance alone, or whether they represent true underlying differences. 
+Preliminary data analysis shows that Length of stay (LOS) at Lions Gate Hospital may depend on the __day of the week of admission__. To test this hypothesis, we must isolate the effect of the day of week of admission by adjusting for other variables such as __patient age__, __admission nursing unit__, and __patient service__. We must also determine whether observed differences can be attributed to chance alone, or whether they represent true underlying differences. 
 
-For this purpose, we developed a multivariate model to predict average LOS using patient age, admission unit and admission day of week. Using all 3 of these variables improves prediction by around 10.3% compared to the baseline model that uses only nursing unit to predict average LOS (using mean absolute error for comparison). Thus, even though the model was built primarily for inference, it may be useful for prediction as well. The mean absolute error of predictions from the model is 2.9 days. 
+For this purpose, we developed a multivariate model to predict average LOS using patient age, patient service, admission unit, admission day of week and admission year. Using all 5 of these variables improves prediction by around 10.3% compared to the baseline model that uses only nursing unit to predict average LOS (using mean absolute error for comparison).^[the improvement is ~17% when we focus on the patients with LOS at the 90th percentile or lower] Thus, even though the model was built primarily for inference, it may be useful for prediction as well. The mean absolute error of predictions from the model is 2.9 days. 
 
-We conclude that there is an effect on LOS due to day of week of admission. 
+We conclude that there is an effect on LOS due to day of week of admission. However, please note that this conclusion may change if we adjust for other variables relevant to patients' LOS. 
+
+Using __Monday as a baseline__: 
+
+* Patients admitted on __Fridays__ have LOS that is not significantly different from Mondays 
+* Patients admitted on __Tuesdays__, __Wednesdays__, and __Thursdays__ have significantly lower LOS by `r round((1 - exp(-3.821e-02))*100, 2)`%, `r round((1 - exp(-3.776e-02))*100, 2)`%, and `r round((1 - exp(-4.319e-02))*100, 2)`%
+* Patients admitted on __Saturdays__ and __Sundays__ have LOS that is significantly lower by `r round((1 - exp(-1.731e-01))*100, 2)`% and `r round((1 - exp(-1.439e-01))*100, 2)`% 
+
 
 The multivariate regression model we developed has the general form: 
 
-$${log(avgLOS)_i} = \alpha + \beta_{1} nurse.unit_{i} + \beta_{2}  age_{i} + \beta_{3}  day.of.week_{i} + \beta_{4} pt.service_{i} + \epsilon_{i}$$
+$${log(avgLOS)_i} = \alpha + \beta_{1} nurse.unit_{i} + \beta_{2}  age_{i} + \beta_{3}  day.of.week_{i} + \beta_{4} pt.service_{i} + \beta_{5} admit.year +  \epsilon_{i}$$
 The coefficients for each level of the variables in the model are included in the appendix. 
 
 
@@ -93,7 +101,7 @@ In the second table, only day of week is varied for patients of age 40 years adm
 
 #### Effect of age (adjusted for other variables): 
 ```{r echo=FALSE} 
-pred <- predict(m4.los.vs.dow.age.unit, 
+pred <- predict(m6.1.add.service, 
                 newdata = df6.dummy.age, 
                 type = "response")
 
@@ -103,6 +111,7 @@ df6.dummy.age %>%
            dow, 
            age, 
            unit.code, 
+           service,
            los.predicted) %>% 
     kable() %>% 
     kable_styling(bootstrap_options = c("striped", "condensed"),
