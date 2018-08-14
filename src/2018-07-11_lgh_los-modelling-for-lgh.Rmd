@@ -60,7 +60,6 @@ df7.dummy.dow %<>%
 ```
 
 ## todo: 
-* Update dummy data to include all fields, use model 6.1 instead of 4
 * Change baseline med service to something other than ALC. 
 * ??
 
@@ -70,7 +69,7 @@ df7.dummy.dow %<>%
 ## Summary
 Preliminary data analysis shows that Length of stay (LOS) at Lions Gate Hospital may depend on the __day of the week of admission__. To test this hypothesis, we must isolate the effect of the day of week of admission by adjusting for other variables such as __patient age__, __admission nursing unit__, and __patient service__. We must also determine whether observed differences can be attributed to chance alone, or whether they represent true underlying differences. 
 
-For this purpose, we developed a multivariate model to predict average LOS using patient age, patient service, admission unit, admission day of week and admission year. Using all 5 of these variables improves prediction by around 10.3% compared to the baseline model that uses only nursing unit to predict average LOS (using mean absolute error for comparison).^[the improvement is ~17% when we focus on the patients with LOS at the 90th percentile or lower] Thus, even though the model was built primarily for inference, it may be useful for prediction as well. The mean absolute error of predictions from the model is 2.9 days. 
+For this purpose, we developed a multivariate model to predict average LOS using patient age, patient service, admission unit, admission day of week and admission year. Using all 5 of these variables improves prediction by around 10.3% compared to the baseline model that uses only nursing unit to predict average LOS (using mean absolute error for comparison). The improvement is ~17% when we focus on the patients with LOS at the 90th percentile or lower. Thus, even though the model was built primarily for inference, it may be useful for prediction as well. The mean absolute error of predictions from the model is 2.9 days. 
 
 We conclude that there is an effect on LOS due to day of week of admission. However, please note that this conclusion may change if we adjust for other variables relevant to patients' LOS. 
 
@@ -127,7 +126,7 @@ df6.dummy.age %>%
 
 #### Effect of day of week (adjusted for other variables): 
 ```{r echo=FALSE}
-pred <- predict(m4.los.vs.dow.age.unit, 
+pred <- predict(m6.1.add.service, 
                 newdata = df7.dummy.dow, 
                 type = "response")
 
@@ -137,6 +136,7 @@ df7.dummy.dow %>%
            dow, 
            age, 
            unit.code, 
+           service,
            los.predicted) %>% 
     kable() %>% 
     kable_styling(bootstrap_options = c("striped", "condensed"),
@@ -149,7 +149,7 @@ df7.dummy.dow %>%
 ---------------------------------------------------
 
 ## Methodology
-LOS data is strictly positive and highly non-normal, which is why ordinary least squares regression is not appropriate. We used a zero-truncated Poisson regression model (for details, see [this example](https://stats.idre.ucla.edu/r/dae/zero-truncated-poisson/)). The model was trained on data from the full calendar year of 2017, and tested on data from January and February 2018. 
+LOS data is strictly positive and highly non-normal, which is why ordinary least squares regression is not appropriate. We used a zero-truncated Poisson regression model (for details, see [this example](https://stats.idre.ucla.edu/r/dae/zero-truncated-poisson/)). The model was trained on data from the full calendar years of 2016 and 2017, and tested on data from January and February 2018. 
 
 Likelihood ratio tests were used to test for significant improvements in model performance as variables were added to the model. Model residuals were inspected visually and using quantile regression to assess the assumption that the response variable has a zero-truncated Poisson distribution. 
 
@@ -179,7 +179,6 @@ p25.test.data.actual.vs.pred.m6
 # Possible extensions to the model
 It may be worth extending this model both as a tool for inference about the relationships between variables that affect LOS, and for the purpose of predicting LOS at Lions Gate Hospital. The following variables may be useful in improving the predictions of the model: 
 
-* Gender
 * Admission Category Group              
 * Admission Patient Service (current encounter and previous encounters)
 * Number of previous acute episodes in last year 
