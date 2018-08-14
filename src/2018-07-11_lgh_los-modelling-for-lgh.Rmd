@@ -60,7 +60,7 @@ df7.dummy.dow %<>%
 ```
 
 ## todo: 
-* Change baseline med service to something other than ALC. 
+* Change baseline med service to something other than ALC. Just use relevel(): https://rstudio-pubs-static.s3.amazonaws.com/65059_586f394d8eb84f84b1baaf56ffb6b47f.html 
 * ??
 
 \  
