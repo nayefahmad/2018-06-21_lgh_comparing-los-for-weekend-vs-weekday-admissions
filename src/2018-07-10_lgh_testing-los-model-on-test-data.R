@@ -31,7 +31,7 @@ df2.test.data %<>%
     filter(!is.na(losdays)) 
 
 
-# add predictions to test data: 
+# add predictions to test data: -----------
 df4.testing.with.predicted <- 
     df2.test.data %>% 
     mutate(m0.dow.pred = predict(m0.ols.dow, 
